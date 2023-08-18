@@ -1,4 +1,6 @@
+const generateJWT = require('../utils/jwt');
 const User = require('./../models/user.model');
+const bcrypt = require('bcryptjs')
 
 exports.findAllUser = async (req, res) => {
   try {
@@ -23,22 +25,8 @@ exports.findAllUser = async (req, res) => {
 };
 exports.findUser = async (req, res) => {
   try {
-    const { id } = req.params;
 
-    const user = await User.findOne({
-      where: {
-        id,
-        status: 'available',
-      },
-    });
-
-    if (!user) {
-      return res.status(404).json({
-        status: 'error',
-        message: `User with id ${id} not found`,
-      });
-    }
-
+    const { user } = req;
     return res.status(200).json({
       status: 'success',
       user,
@@ -57,9 +45,13 @@ exports.createUser = async (req, res) => {
     const { name, email, password, role } = req.body;
 
     const user = await User.create({ name, email, password, role });
+
+    const token = await generateJWT(user.id);
+
     return res.status(201).json({
       status: 'success',
       message: 'user created succesfuly',
+      token,
       user,
     });
   } catch (error) {
@@ -73,23 +65,9 @@ exports.createUser = async (req, res) => {
 };
 exports.updateUser = async (req, res) => {
   try {
-    const { id } = req.params;
+
     const { name, email } = req.body;
-
-    const user = await User.findOne({
-      where: {
-        id,
-        status: 'available',
-      },
-    });
-
-    if (!user) {
-      return res.status(404).json({
-        status: 'error',
-        message: `User with id ${id} not found `,
-      });
-    }
-
+    const { user } = req;
     await user.update({ name, email });
 
     return res.status(200).json({
@@ -107,21 +85,8 @@ exports.updateUser = async (req, res) => {
 };
 exports.deleteUser = async (req, res) => {
   try {
-    const { id } = req.params;
 
-    const user = await User.findOne({
-      where: {
-        id,
-        status: 'available',
-      },
-    });
-
-    if (!user) {
-      return res.status(404).json({
-        status: 'error',
-        message: `User with id ${id} not found`,
-      });
-    }
+    const { user } = req;
 
     await user.update({ status: 'unavailable' });
 
@@ -138,3 +103,26 @@ exports.deleteUser = async (req, res) => {
     });
   }
 };
+exports.login = async (req, res) => {
+  const { user } = req;
+  const { password } = req.body;
+
+  if (!(await bcrypt.compare(password, user.password))) {
+    return res.status(401).json({
+      status: 'error',
+      message: 'Incorrect email or password'
+    });
+  }
+  const token = await generateJWT(user.id)
+
+  res.status(200).json({
+    status: 'success',
+    token,
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    }
+  })
+}

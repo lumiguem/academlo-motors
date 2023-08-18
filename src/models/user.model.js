@@ -1,5 +1,7 @@
 const { DataTypes } = require('sequelize');
-const { db } = require('./../database/config');
+const { db } = require('../database/config');
+const bcrypt = require('bcryptjs')
+
 
 const User = db.define('users', {
   id: {
@@ -22,14 +24,23 @@ const User = db.define('users', {
     allowNull: false,
   },
   role: {
-    type: DataTypes.STRING,
+    type: DataTypes.ENUM('client', 'employee'),
     allowNull: false,
+    defaultValue: 'client',
   },
   status: {
     type: DataTypes.ENUM('available', 'unavailable'),
     allowNull: false,
     defaultValue: 'available',
   },
+}, {
+  hooks: {
+    beforeCreate: async (user) => {
+      const salt = await bcrypt.genSalt(10);
+      const secretPassword = await bcrypt.hash(user.password, salt);
+      user.password = secretPassword;
+    }
+  }
 });
 
 module.exports = User;
