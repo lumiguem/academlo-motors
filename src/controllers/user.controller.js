@@ -1,109 +1,68 @@
+const catchAsync = require('../utils/catchAsync');
 const generateJWT = require('../utils/jwt');
 const User = require('./../models/user.model');
 const bcrypt = require('bcryptjs')
 
-exports.findAllUser = async (req, res) => {
-  try {
-    const users = await User.findAll({
-      where: {
-        status: 'available',
-      },
-    });
+exports.findAllUser = catchAsync(async (req, res) => {
+  const users = await User.findAll({
+    where: {
+      status: 'available',
+    },
+  });
 
-    return res.status(200).json({
-      status: 'success',
-      users,
-    });
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json({
-      status: 'fail',
-      message: 'Internal server error',
-      error,
-    });
-  }
-};
-exports.findUser = async (req, res) => {
-  try {
+  return res.status(200).json({
+    status: 'success',
+    users,
+  });
 
-    const { user } = req;
-    return res.status(200).json({
-      status: 'success',
-      user,
-    });
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json({
-      status: 'fail',
-      message: 'Internal server error',
-      error,
-    });
-  }
-};
-exports.createUser = async (req, res) => {
-  try {
-    const { name, email, password, role } = req.body;
+});
+exports.findUser = catchAsync(async (req, res) => {
 
-    const user = await User.create({ name, email, password, role });
+  const { user } = req;
+  return res.status(200).json({
+    status: 'success',
+    user,
+  });
 
-    const token = await generateJWT(user.id);
+});
+exports.createUser = catchAsync(async (req, res) => {
 
-    return res.status(201).json({
-      status: 'success',
-      message: 'user created succesfuly',
-      token,
-      user,
-    });
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json({
-      status: 'fail',
-      message: 'Cannot create user',
-      error,
-    });
-  }
-};
-exports.updateUser = async (req, res) => {
-  try {
+  const { name, email, password, role } = req.body;
 
-    const { name, email } = req.body;
-    const { user } = req;
-    await user.update({ name, email });
+  const user = await User.create({ name, email, password, role });
 
-    return res.status(200).json({
-      status: 'success',
-      message: 'User updated successfully',
-    });
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json({
-      status: 'fail',
-      message: 'Internal server error',
-      error,
-    });
-  }
-};
-exports.deleteUser = async (req, res) => {
-  try {
+  const token = await generateJWT(user.id);
 
-    const { user } = req;
+  return res.status(201).json({
+    status: 'success',
+    message: 'user created succesfuly',
+    token,
+    user,
+  });
 
-    await user.update({ status: 'unavailable' });
+});
+exports.updateUser = catchAsync(async (req, res) => {
+  const { name, email } = req.body;
+  const { user } = req;
+  await user.update({ name, email });
 
-    return res.status(200).json({
-      status: 'success',
-      message: 'User deleted successfully',
-    });
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json({
-      status: 'fail',
-      message: 'Internal server error',
-      error,
-    });
-  }
-};
-exports.login = async (req, res) => {
+  return res.status(200).json({
+    status: 'success',
+    message: 'User updated successfully',
+  });
+});
+exports.deleteUser = catchAsync(async (req, res) => {
+  const { user } = req;
+
+  await user.update({ status: 'unavailable' });
+
+  return res.status(200).json({
+    status: 'success',
+    message: 'User deleted successfully',
+  });
+
+});
+exports.login = catchAsync(async (req, res) => {
   const { user } = req;
   const { password } = req.body;
 
@@ -125,4 +84,4 @@ exports.login = async (req, res) => {
       role: user.role,
     }
   })
-}
+})

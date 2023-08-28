@@ -18,7 +18,7 @@ router
   .use(userMiddleware.existUser)
   .route('/:id')
   .get(userController.findUser)
-  .patch(userController.updateUser)
-  .delete(userController.deleteUser);
+  .patch(authMiddleware.protectAccountOwner, userController.updateUser)
+  .delete(authMiddleware.protectAccountOwner, userController.deleteUser);
 
 module.exports = router;

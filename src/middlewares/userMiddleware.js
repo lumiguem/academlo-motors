@@ -1,5 +1,6 @@
 const catchAsync = require('../utils/catchAsync');
 const User = require('../models/user.model');
+const AppError = require('../utils/appError');
 
 exports.existUser = catchAsync(async (req, res, next) => {
     const { id } = req.params;
@@ -12,10 +13,7 @@ exports.existUser = catchAsync(async (req, res, next) => {
     });
 
     if (!user) {
-        return res.status(404).json({
-            status: 'error',
-            message: `User with id ${id} not found`,
-        });
+        return next(new AppError(`User with id ${id} not found`, 404))
     }
 
     req.user = user;
@@ -31,10 +29,7 @@ exports.existUserEmail = catchAsync(async (req, res, next) => {
         },
     });
     if (!user) {
-        return res.status(404).json({
-            status: 'error',
-            message: `User with email ${email} not found`,
-        });
+        return next(new AppError(`User with email ${email} not found`, 404))
     }
     req.user = user;
     next()

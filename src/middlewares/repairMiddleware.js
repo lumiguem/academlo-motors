@@ -1,5 +1,6 @@
 const catchAsync = require('../utils/catchAsync');
 const Repair = require('../models/repair.model');
+const AppError = require('../utils/appError');
 
 exports.existRepair = catchAsync(async (req, res, next) => {
 
@@ -11,11 +12,11 @@ exports.existRepair = catchAsync(async (req, res, next) => {
         },
     });
 
+
+
     if (!repair) {
-        return res.status(404).json({
-            status: 'error',
-            message: `Appointment repair with id ${id} not found`,
-        });
+        return next(new AppError(`Appointment repair with id ${id} not found`, 404))
+
     }
 
     req.repair = repair;
